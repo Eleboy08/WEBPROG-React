@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Guestbook</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; }
+    form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
+    input, textarea { padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; }
+    button { padding: 10px; font-size: 16px; background: #0070f3; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    .entry { border-bottom: 1px solid #eee; padding: 15px 0; }
+    .entry h4 { margin: 0 0 5px 0; }
+    .entry p { margin: 0; color: #555; }
+  </style>
+</head>
+<body>
+  <h1>Sign the Guestbook</h1>
+  
+  <form id="guestbook-form">
+    <input type="text" id="name" placeholder="Your Name" required>
+    <textarea id="message" placeholder="Your Message" required rows="4"></textarea>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Recent Logs</h2>
+  <div id="entries">Loading logs...</div>
+
+  <script>
+    async function fetchLogs() {
+      const res = await fetch('/api/get');
+      const data = await res.json();
+      const entriesDiv = document.getElementById('entries');
+      entriesDiv.innerHTML = data.map(entry => `
+        <div class="entry">
+          <h4>${entry.name}</h4>
+          <p>${entry.message}</p>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('guestbook-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      const message = document.getElementById('message').value;
+
+      await fetch('/api/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, message })
+      });
+
+      document.getElementById('name').value = '';
+      document.getElementById('message').value = '';
+      fetchLogs(); // Refresh the list
+    });
+
+    // Load logs on page startup
+    fetchLogs();
+  </script>
+</body>
+</html>
